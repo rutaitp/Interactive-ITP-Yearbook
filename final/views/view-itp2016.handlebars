@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+	<style>
+		body{
+			background-color: #000000;
+		}
+		#title{
+			/*add css for the area of a app title*/
+		}
+		.lead{
+			/*style the text itself*/
+			color:white;
+			font-family:Rockwell;
+			font-size: 38pt;
+			text-align:center;
+		}
+		#container{
+			margin-left: 0px;
+		}
+		#home{
+			font-family:sans-serif;
+			background:#FFF;
+			position:relative;
+			transition: .5s ease;
+		}
+		#home:hover{
+			background-color: #F8A84B;
+		}
+
+	</style>
+	<head>
+		<link type='text/css' rel='stylesheet' href='stylesheet.css'></link> <!-- put all css in this file -->
+		<script src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript">
+
+			var socket = io.connect ();
+
+			socket.on('client', function(data){
+				//create a div only if there's a new user
+				for (var i=0; i<data.length; i++){
+					if(document.getElementById(data[i]) == null){
+						console.log("userlist " + data[i]);
+					}
+				}
+				socket.emit('history2016', null);
+			});
+
+			//display the recorded video
+		socket.on('allinfo2016', function (data){
+				//create a div
+	            var box = document.createElement('DIV');
+	            box.id ="boxx" + data.id;
+	            box.style.float = "left";
+	            box.style.marginLeft = "10px";
+	            box.style.marginTop = "10px";
+	            box.style.borderWidth = '2px';
+	            box.style.borderStyle = 'solid';
+	            box.style.color = 'transparent';
+	            box.style.textAlign = "center";
+
+	            document.body.appendChild(box);
+
+	            //replace the spaces on the client side as well
+	            var fileName = data.txt;
+				var path_name = fileName.replace(/[^a-zA-Z]/g, "");
+
+				//VIDEO
+				var recordedVideo = document.createElement('video');
+				recordedVideo.id = 'recordedvideo' + data.id;
+	            recordedVideo.src = '/itp2016/' + path_name+'.webm';
+	            console.log(recordedVideo.src);
+	            recordedVideo.loop = true;
+	            recordedVideo.autoplay = true;
+	            recordedVideo.style.width = '190px';
+	            recordedVideo.borderRadius = "5px";
+
+	            box.appendChild(recordedVideo);
+
+                //FULLNAME
+                var fullName = document.createElement('DIV');
+                fullName.id = 'fullname' + data.id;
+                fullName.innerHTML = data.txt;
+                console.log(fullName.innerHTML);
+                fullName.style.width = "190px";
+                fullName.style.backgroundColor = "#F8A84B"; //teal
+                fullName.style.fontFamily = "Rockwell";
+                fullName.style.fontSize = "12pt";
+                fullName.style.color = "white";
+                fullName.style.textAlign = "center";
+
+                box.appendChild(fullName);
+
+
+                //SUPERPOWER
+                var superPower = document.createElement('DIV');
+                superPower.id = 'text' + data.id;
+                superPower.innerHTML = data.text;
+                console.log(superPower.innerHTML);
+                superPower.style.width = "190px";
+                superPower.style.backgroundColor = "#c6863c"; //cadetblue
+                superPower.style.fontFamily = "Rockwell Light";
+                superPower.style.fontSize = "12pt";
+                superPower.style.color = "white";
+                superPower.style.textAlign = "center";
+                
+                box.appendChild(superPower);
+				
+			});
+
+		</script>
+	</head>
+
+	<body>
+    	<!-- button -->
+    	<div id='container' class='container'>
+    		<!-- view button -->
+    		<div id='btn-group' class="btn-group" role="group" aria-label="...">
+      		<a id='home' href="/" class="btn  btn-default">Home</a>
+    		</div>
+    	</div>
+    	<div id='title'>  
+      	<h1 id='page-name' class='lead'><strong>Graduating class of ITP 2016 and their superpowers</strong></h1>
+      	</div>
+	</body>
+</html>
+
+

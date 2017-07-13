@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+	<style>
+		body{
+			background-color: #000000;
+		}
+		#title{
+			/*add css for the area of a app title*/
+		}
+		#container{
+			margin-left: 0px;
+		}
+		#home{
+			font-family:sans-serif;
+			background:#FFF;
+			position:relative;
+			transition: .5s ease;
+		}
+		#home:hover{
+			background-color: #F8A84B;
+		}
+		#camera{
+			text-align: center;
+		}
+		#box{
+			/*margin-top:10px;
+			margin-left: 350px;*/
+			margin:auto;
+			position: relative;
+			text-align: center;
+		}
+		#fullname{
+			width:280px;
+			padding:5px 15px;
+			border-radius: 5px;
+			font-family:sans-serif;
+		}
+		#superpower{
+			width:250px;
+			padding:5px 15px;
+			border-radius: 5px;
+			font-family:sans-serif;
+		}
+		#record{
+			margin-left:20px;
+			width:200px;
+			height:70px;
+			padding:5px 15px; 
+    		background:#F8A84B; 
+    		border:40 none;
+    		cursor:pointer;
+    		border-radius: 5px;
+    		font-family:sans-serif;
+    		font-weight: bold;
+    		color: white;
+    		position:relative;
+			transition: .5s ease;
+		}
+		#record:hover{
+			background:#c6863c;
+		}
+		#after{
+			/*margin-left: 350px;
+			margin-bottom:50px;*/
+			margin:auto;
+			position: relative;
+			padding:5px; 
+    		background:#000000; 
+    		border:40 none;
+    		border-radius: 5px;
+    		width:760px;
+		}
+		#instructions{
+			font-family:Rockwell;
+			color: #FFF;
+			font-size: 14pt;
+			text-align: center;
+			margin:auto;
+		}
+		#timer_div{
+			font-family:Courier;
+			color: #FFF;
+			font-size: 30pt;
+			font-weight: bold;
+			width:750px;
+			text-align: center;
+		}
+		#viewnext{
+			visibility: hidden;
+			font-family:sans-serif;
+			width:750px;
+			height:45px;
+			padding:5px 15px;
+    		border:40 none;
+    		cursor:pointer;
+    		border-radius: 5px;
+    		text-align:center;
+    		vertical-align:middle;
+    		background: #F8A84B;
+		}
+	</style>
+	<head>
+		<link type='text/css' rel='stylesheet' href='stylesheet.css'></link>
+
+		<script src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript">
+
+			var socket = io.connect ();
+			var clientID;
+		
+
+			socket.on('connect', function(){
+				console.log("Connected");
+				clientID = socket.io.engine.id;
+				console.log("My client id: " + clientID);
+			});
+
+			//remove disconnected users
+  			socket.on('userdisconnected', function(data){
+  				console.log("Disconnected");
+  				// remove all children that are ID'd by the socket.id coming in as "data"
+  				//document.getElementById('box').removeChild(document.getElementById(data));
+  			});
+
+			var stream = null;
+			var video = null;
+			var submitClicked;
+			var recordedVideoURL = null;
+
+			var chunks = [];
+
+			function init(){
+				//get video streaming from each user and play it only on their browser
+				window.URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
+				navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+				video=document.getElementById("thevideo");
+				if (navigator.getUserMedia) {
+					navigator.getUserMedia({video: true}, function(s) {
+						stream = s;
+						video.src = window.URL.createObjectURL(stream) || stream;
+						video.play();
+						}, function(error) {alert("Failure " + error.code);}
+					);
+				}	
+			}
+
+			window.addEventListener('load', init);
+
+			submitClicked = function(){
+
+				//remove the <p> from the <div> "after"
+				document.getElementById('after').removeChild(document.getElementById("instructions"));
+
+				var nameMessage = document.getElementById('fullname').value;
+				var powerMessage = document.getElementById("superpower").value;
+				
+				//media recorder to start
+				var mediaRecorder = new MediaRecorder(stream);
+
+				mediaRecorder.start();
+
+				//timer
+				function timer (){
+					var seconds_left = 4;
+					var interval = setInterval(function(){
+						document.getElementById('timer_div').innerHTML = --seconds_left;
+
+						if (seconds_left <=0){
+							document.getElementById('timer_div').innerHTML = "Video saved!";
+							clearInterval(interval);
+							//show the button
+							var viewNext = document.getElementById('viewnext');
+							viewNext.style.visibility = "visible";
+
+							//disable record button
+							document.getElementById("record").disabled = true;
+						}
+					}, 1000);
+				}
+				timer();
+
+				setTimeout(function(){
+
+					mediaRecorder.stop();
+				}, 4000);
+
+				mediaRecorder.onstop = function(e){
+					console.log("stop");
+
+					//video blob
+					var blob = new Blob(chunks, {'type' : 'video/webm'});
+					recordedVideoURL = window.URL.createObjectURL(blob);
+					console.log(recordedVideoURL);
+
+					//name message blob
+					var nameBlob = new Blob([nameMessage], {'type' : 'text/plain'});
+					var nameMessageURL = window.URL.createObjectURL(nameBlob);
+
+					//power message blob
+					var powerBlob = new Blob([powerMessage], {'type' : 'text/plain'});
+					var powerMessageURL = window.URL.createObjectURL(powerBlob);
+
+					//emit everything together
+					socket.emit('allinfo2017',{video:blob, saveName:nameBlob, savePower:powerBlob, show:recordedVideoURL, txt:nameMessage, text:powerMessage});
+				};
+
+				mediaRecorder.ondataavailable = function(e){
+					console.log('data');
+					chunks.push(e.data);
+				};
+			}	
+		</script>
+    	
+	</head>
+
+	<body>
+    	<div id='container' class='container'>
+    		<!-- view button -->
+    		<div id='btn-group' class="btn-group" role="group" aria-label="...">
+      		<a id='home' href="/" class="btn  btn-default">Home</a>
+    		</div>
+    	</div>
+    	<div id="after">
+			<p id='instructions'>Fill in your name and superpower, and click "Record". After you click "Record", you will have 4 seconds to move for your video. It will later be saved and put together with all the other videos from your class.</p>
+			<div id='timer_div' style="width:100;"></div>
+			<a id='viewnext' href="/view-itp2017" class="btn  btn-default">View your video!</a>
+		</div>
+    	<div id='camera'>
+    		<video id="thevideo" width="650px" muted></video>
+    	</div>
+		<div id="box" class='container'>
+			<input id='fullname' name='message' type="text" class='textarea' placeholder="Enter your name and last name">
+			<input id='superpower' name='message' type="text" class='textarea' placeholder="What's your superpower?">
+			<input id='record' type='submit' class='submitbutton' value='Record' onclick='submitClicked()'>
+		</div>
+			<br>
+	</body>
+</html>

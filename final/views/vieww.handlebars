@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+	<style>
+		body{
+			background-color: darkturquoise;
+		}
+		#title{
+			/*add css for the area of a app title*/
+		}
+		.lead{
+			/*style the text itself*/
+			color:white;
+			font-family:Courier;
+			font-size: 42px;
+			text-align:center;
+		}
+		#container{
+			margin-left: 0px;
+		}
+		#home{
+			font-family:Courier;
+		}
+	</style>
+	<head>
+		<link type='text/css' rel='stylesheet' href='stylesheet.css'></link> <!-- put all css in this file -->
+		<script src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript">
+
+			var socket = io.connect ();
+
+			// socket.on('connect', function(){
+			// 	//Once we are connected, request the history
+			// 	socket.emit('history', null);
+			// });
+
+			socket.on('client', function(data){
+				//create a div only if there's a new user
+				for (var i=0; i<data.length; i++){
+					if(document.getElementById(data[i]) == null){
+						console.log("userlist " + data[i]);
+
+						//old one
+						// document.getElementById('box').innerHTML = document.getElementById('box').innerHTML+ "<br>" + '<div id="'+data[i]+'" style="float:left; border-width:2px; border-style: solid; border-color: transparent;"> <video id="recordedvideo'+data[i]+'"style="float:left; width:252px; margin-left:5px; autoplay muted loop" src=""></video><div id="fullname'+data[i]+'"style="width:240px; background-color:teal;"></div><div id="text'+data[i]+'"style="width:240px; background-color:cadetblue;"></div></div>';
+
+						// //initial one
+						// document.getElementById('box').innerHTML = document.getElementById('box').innerHTML+ "<br>" + '<div id="boxx'+data[i]+'" style="float:left; border-width:2px; border-style: solid; border-color: transparent;"> <video id="recordedvideo'+data[i]+'"style="width:310px; height:240px; autoplay muted loop" src=""></video><div id="fullname'+data[i]+'"></div><div id="text'+data[i]+'"></div></div>';
+
+						//new one
+						// document.getElementById('box').innerHTML = document.getElementById('box').innerHTML+ "<br>" + '<div id="'+data[i]+'" style="float:left; border-width:2px; border-style: solid; border-color: transparent;"> <video id="recordedvideo'+data[i]+'"style="float:left; width:250px; margin-left:5px; position:fixed; autoplay muted loop" src=""></video><div id="viewname'+data[i]+'"style="width:500px; height:20px; background-color:teal; position:relative;"></div><div id="power'+data[i]+'"style="width:500px; height:20px; background-color:cadetblue; position:absolute;"></div></div>';
+					}
+				}
+
+				socket.emit('history', null);
+			});
+
+			//display the recorded video
+		socket.on('allinfo', function (data){
+				//create a div
+	            var box = document.createElement('DIV');
+	            box.id = data.id;
+
+	            for (var i=0; i<data.length; i++){
+					if(document.getElementById(data[i]) == null){
+						box.innerHTML = box.innerHTML+ "<br>" + '<video id="video'+data[i]+'"style="width:310; height:240; autoplay muted loop" src=""></video><div id="name'+data[i]+'"></div><div id="power'+data[i]+'">';
+					}
+				}
+
+				//VIDEO
+				//var recordedVideo = document.createElement('video'); //uncomment
+				var recordedVideo = document.getElementById('video');
+				recordedVideo.id = data.id;
+				//recordedVideo.id = 'recordedvideo' + data.id;
+	            recordedVideo.src = '/videoss/' + data.txt+'.webm';
+	            console.log(recordedVideo.src);
+	            recordedVideo.controls = true;
+	            recordedVideo.loop = true;
+	            document.getElementById('box').appendChild(recordedVideo);
+	            //document.body.appendChild(recordedVideo);
+	            recordedVideo.style.width = '310';
+
+	            // //create a div
+	            // var box = document.createElement('DIV');
+	            // box.id = data.id;
+	            // box.appendChild(recordedVideo);
+
+	            //document.write('<br/>'); //uncomment this one later
+
+                // //FULLNAME
+                // var fullName = document.createElement('name');
+                // fullName.id = 'fullname' + data.id;
+                // fullName.innerHTML = data.txt;
+                // //document.body.appendChild(fullName);
+                // box.appendChild(fullName);
+
+                // //document.write('<br/>');
+
+                // //SUPERPOWER
+                // var superPower = document.createElement('power');
+                // superPower.id = 'text' + data.id;
+                // superPower.innerHTML = data.text;
+                // document.body.appendChild(superPower);
+                // //fullName.appendChild(superPower);
+
+                //document.write('<br/>');
+				
+			});
+
+		</script>
+	</head>
+
+	<body>
+    	<!-- button -->
+    	<div id='container' class='container'>
+    		<!-- view button -->
+    		<div id='btn-group' class="btn-group" role="group" aria-label="...">
+      		<a id='home' href="/" class="btn  btn-default">Home</a>
+    		</div>
+    	</div>
+		<div id="box">
+		</div>
+	</body>
+</html>
+
+
